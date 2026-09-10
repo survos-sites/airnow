@@ -40,7 +40,12 @@ try {
     const cookie = bootstrap.headers.get('set-cookie').split(';')[0];
     const page = await fetch(url, { headers: { Cookie: cookie } });
     assert.equal(page.status, 200);
-    assert((await page.text()).includes('Air quality'));
+    const html = await page.text();
+    assert(html.includes('Air quality'));
+    const imports = JSON.parse(html.match(/<script type="importmap">([\s\S]*?)<\/script>/)[1]).imports;
+    for (const asset of Object.values(imports).filter(path => path.startsWith('/assets/'))) {
+        assert.equal((await fetch(`${url}${asset}`)).status, 200, `Missing bundled asset: ${asset}`);
+    }
     for (const route of ['settings', 'history']) {
         assert.equal((await fetch(`${url}/${route}`, { headers: { Cookie: cookie } })).status, 200);
     }

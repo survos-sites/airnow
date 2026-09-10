@@ -8,7 +8,7 @@
         <section class="summary {{ level }}"><span class="eyebrow">HIGHEST REPORTED AQI</span><strong class="aqi">{{ highest.aqi }}</strong><h2>{{ highest.categoryName }}</h2><p>{{ highest.reportingAreaName }}</p></section>
         <ul class="pollutants">
         {% for observation in observations %}
-            <li><div><strong>{{ observation.parameterName }}</strong><span>{{ observation.categoryName }}</span><small>Observed {{ observation.dateObserved }} · {{ observation.hourObserved }} {{ observation.localTimeZone }}</small></div><b>{{ observation.aqi }}</b></li>
+            <li><div><strong>{{ observation.parameterName }}</strong><span>{{ observation.categoryName }}</span><small>Observed {{ observation.dateObserved }} · {{ observation.hourObserved }} {{ observation.localTimeZone }}</small><small>{{ observation.source.reportingAgency|default('') }}</small></div><b>{{ observation.aqi }}</b></li>
         {% endfor %}
         </ul>
         <p class="muted small">Observation times are supplied by AirNow and may be older than the last check.</p>

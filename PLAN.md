@@ -84,3 +84,17 @@ Display name is Air Quality; identifier stays com.survos.airnow for persisted da
 The proxy site monitor can add scheduled HTTP smoke checks against Symfony CLI-served apps.
 The Scheduler consumer would hold monitor code, not the checked applications' code; dev
 reload is owned by those Symfony CLI servers. Keep this enhancement for the next demo.
+
+## Hosted AirNow service proposal
+
+For a general audience, default to a hosted Symfony observation/forecast API using
+survos/airnow-bundle with shared per-location caching. Keep direct AirNow + personal key
+as an advanced option, behind a small observation-source interface in the desktop app.
+A desktop refresh must not bypass a public service's shared cache. Validate ZIPs and
+rate-limit the hosted service. This is a proposal, not an implemented or deployed service;
+no domain has been selected. Read AirNow's FAQ/data-exchange guidelines before release,
+including source attribution, preliminary-data labeling and informing the relevant agencies.
+
+Local DMG creation was blocked by hdiutil “Device not configured”; unsigned DMG creation
+and mount/runtime checks are running on both GitHub macOS runners instead. Current
+uncompressed Apple Silicon app size: 213 MB. Runtime and shell both declare macOS 12 minimum.
