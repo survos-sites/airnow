@@ -1,4 +1,15 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Symfony Desktop</title>
-<style>body{font:16px -apple-system,BlinkMacSystemFont,sans-serif;background:#f3f6f4;color:#19362c;margin:0;padding:32px}small{color:#57756a}h1{font-size:32px;line-height:1.15;margin:24px 0}p{line-height:1.6}</style></head>
-<body><small>SYMFONY DESKTOP · PROOF OF CONCEPT</small><h1>Hello from Symfony Desktop</h1><p>Symfony is running inside a native macOS window.</p><p>Close this window to keep the app in your menu bar. Use the tray menu to quit.</p></body></html>
+{% extends 'base.html.twig' %}
+{% block body %}
+<div data-controller="monitor" data-monitor-enabled-value="{{ hasKey ? 'true' : 'false' }}">
+    <div class="heading"><h1>Air quality <span>{{ zip }}</span></h1></div>
+    <div data-monitor-target="results" aria-live="polite">{% include '_observations.html.twig' %}</div>
+    {% if hasKey %}
+        <form action="{{ path('refresh') }}" method="post" data-monitor-target="form" data-action="submit->monitor#manual">
+            <input type="hidden" name="_token" value="{{ csrf_token('refresh') }}">
+            <input type="hidden" name="force" value="1">
+            <button data-monitor-target="button">Refresh now</button>
+        </form>
+        <p class="muted small" data-monitor-target="status">Checks every five minutes while this page is open. API responses are cached for one hour.</p>
+    {% endif %}
+</div>
+{% endblock %}

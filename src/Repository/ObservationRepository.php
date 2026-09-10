@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Observation;
+use App\Entity\RefreshState;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,6 +23,10 @@ final class ObservationRepository extends ServiceEntityRepository
     /** Most recent response batch; never blend pollutants from older refreshes. @return list<Observation> */
     public function latest(string $zipCode): array
     {
+        $state = $this->getEntityManager()->find(RefreshState::class, $zipCode);
+        if ($state !== null) {
+            return $state->observationIds ? $this->findBy(['id' => $state->observationIds], ['aqi' => 'DESC']) : [];
+        }
         $last = $this->findOneBy(['zipCode' => $zipCode], ['fetchedAt' => 'DESC']);
         return $last ? $this->findBy(['zipCode' => $zipCode, 'fetchedAt' => $last->fetchedAt], ['aqi' => 'DESC']) : [];
     }

@@ -11,9 +11,9 @@ final class DesktopTest extends WebTestCase
     public function testHello(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/');
+        $client->request('GET', '/hello');
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Hello from Symfony Desktop');
+        self::assertStringContainsString('Hello from Symfony Desktop', $client->getResponse()->getContent());
     }
 
     public function testDesktopRequiresTokenAndExchangesItForCookie(): void
@@ -25,7 +25,7 @@ final class DesktopTest extends WebTestCase
             self::assertResponseStatusCodeSame(403);
             $client->request('GET', '/?desktop_token=test-token');
             self::assertResponseRedirects('/');
-            $client->followRedirect();
+            $client->request('GET', '/hello');
             self::assertResponseIsSuccessful();
         } finally {
             unset($_SERVER['DESKTOP_TOKEN']);

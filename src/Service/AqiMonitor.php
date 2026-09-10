@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Observation;
+use App\Entity\RefreshState;
+use Survos\AirNowBundle\Exception\AirNowException;
 use App\Repository\ObservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Survos\AirNowBundle\Service\AirNowClient;
@@ -24,13 +26,25 @@ final readonly class AqiMonitor
         if (!$lock->acquire()) { return 0; }
         try {
             $zip = $this->settings->zipCode();
-            $rows = $this->client->currentObservationsByZip($zip, force: $force);
+            $state = $this->em->find(RefreshState::class, $zip) ?? new RefreshState($zip);
+            $this->em->persist($state);
+            $state->checkedAt = new \DateTimeImmutable();
+            try {
+                $rows = $this->client->currentObservationsByZip($zip, force: $force);
+            } catch (AirNowException $e) {
+                $state->error = 'AirNow could not be reached or rejected the request. Check your key and try again.';
+                $this->em->flush();
+                throw $e;
+            }
+            $state->error = null;
+            $state->observationIds = [];
             $fetchedAt = new \DateTimeImmutable();
             foreach ($rows as $dto) {
                 $entity = $this->observations->find(Observation::identity($zip, $dto));
                 if ($entity === null) { $entity = new Observation($zip, $dto); $this->em->persist($entity); }
                 else { $entity->update($dto); }
                 $entity->fetchedAt = $fetchedAt;
+                $state->observationIds[] = $entity->id;
             }
             $this->em->flush();
             return count($rows);

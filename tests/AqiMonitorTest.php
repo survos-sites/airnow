@@ -24,7 +24,7 @@ final class AqiMonitorTest extends KernelTestCase
         $container = static::getContainer();
         $em = $container->get(EntityManagerInterface::class);
         $schema = new SchemaTool($em);
-        $metadata = [$em->getClassMetadata(Observation::class)];
+        $metadata = $em->getMetadataFactory()->getAllMetadata();
         $schema->dropSchema($metadata);
         $schema->createSchema($metadata);
         $http = new MockHttpClient(new MockResponse(file_get_contents(__DIR__.'/fixtures/observations.json')));

@@ -1,10 +1,10 @@
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import net from 'node:net';
 import assert from 'node:assert/strict';
-const bundle = resolve(process.argv[2] ?? 'src-tauri/target/release/bundle/macos/AirNow.app');
+const bundle = resolve(process.argv[2] ?? 'src-tauri/target/release/bundle/macos/Air Quality.app');
 const resources = `${bundle}/Contents/Resources`;
 mkdirSync('var', { recursive: true });
 const data = mkdtempSync(resolve('var/package-check-'));
@@ -13,13 +13,15 @@ listener.listen(0, '127.0.0.1'); await once(listener, 'listening');
 const port = listener.address().port;
 await new Promise(resolve => listener.close(resolve));
 const url = `http://127.0.0.1:${port}`;
+const env = { ...process.env, APP_ENV: 'prod', APP_DEBUG: '0', APP_DATA_DIR: data,
+    APP_BUILD_ID: readFileSync(`${resources}/app/.build-id`, 'utf8'),
+    APP_SECRET: 'package-test', DESKTOP_TOKEN: 'package-test', DEFAULT_URI: url,
+    DESKTOP_PORT: `${port}`, APP_PUBLIC_DIR: `${resources}/app/public` };
+execFileSync(`${bundle}/Contents/MacOS/frankenphp`, ['php-cli', 'bin/console', 'doctrine:migrations:migrate', '--no-interaction'], {
+    cwd: `${resources}/app`, env, timeout: 30000, stdio: 'pipe',
+});
 const child = spawn(`${bundle}/Contents/MacOS/frankenphp`, ['run', '--config', `${resources}/Caddyfile`], {
-    cwd: `${resources}/app`,
-    env: { ...process.env, APP_ENV: 'prod', APP_DEBUG: '0', APP_DATA_DIR: data,
-        APP_BUILD_ID: readFileSync(`${resources}/app/.build-id`, 'utf8'),
-        APP_SECRET: 'package-test', DESKTOP_TOKEN: 'package-test', DEFAULT_URI: url,
-        DESKTOP_PORT: `${port}`, APP_PUBLIC_DIR: `${resources}/app/public` },
-    stdio: ['ignore', 'ignore', 'pipe'],
+    cwd: `${resources}/app`, env, stdio: ['ignore', 'ignore', 'pipe'],
 });
 let log = ''; child.stderr.on('data', chunk => { log += chunk; });
 const exit = once(child, 'exit');
@@ -38,7 +40,10 @@ try {
     const cookie = bootstrap.headers.get('set-cookie').split(';')[0];
     const page = await fetch(url, { headers: { Cookie: cookie } });
     assert.equal(page.status, 200);
-    assert((await page.text()).includes('Hello from Symfony Desktop'));
+    assert((await page.text()).includes('Air quality'));
+    for (const route of ['settings', 'history']) {
+        assert.equal((await fetch(`${url}/${route}`, { headers: { Cookie: cookie } })).status, 200);
+    }
 } finally {
     child.kill('SIGTERM');
     const fallback = setTimeout(() => child.kill('SIGKILL'), 6000);

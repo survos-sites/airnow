@@ -1,0 +1,19 @@
+{% if not hasKey %}
+    <section class="empty"><h2>A little setup, then fresh air.</h2><p>Add your AirNow API key and ZIP code to see nearby observations.</p><a class="button" href="{{ path('settings') }}">Open settings</a></section>
+{% else %}
+    {% if state and state.error %}<p class="notice warning" role="alert">{{ state.error }}{% if observations %} Showing previously saved observations.{% endif %}</p>{% endif %}
+    {% if observations %}
+        {% set highest = observations|first %}
+        {% set level = highest.aqi <= 50 ? 'good' : (highest.aqi <= 100 ? 'moderate' : (highest.aqi <= 150 ? 'sensitive' : (highest.aqi <= 200 ? 'unhealthy' : (highest.aqi <= 300 ? 'very-unhealthy' : 'hazardous')))) %}
+        <section class="summary {{ level }}"><span class="eyebrow">HIGHEST REPORTED AQI</span><strong class="aqi">{{ highest.aqi }}</strong><h2>{{ highest.categoryName }}</h2><p>{{ highest.reportingAreaName }}</p></section>
+        <ul class="pollutants">
+        {% for observation in observations %}
+            <li><div><strong>{{ observation.parameterName }}</strong><span>{{ observation.categoryName }}</span><small>Observed {{ observation.dateObserved }} · {{ observation.hourObserved }} {{ observation.localTimeZone }}</small></div><b>{{ observation.aqi }}</b></li>
+        {% endfor %}
+        </ul>
+        <p class="muted small">Observation times are supplied by AirNow and may be older than the last check.</p>
+    {% else %}
+        <section class="empty"><h2>No observations yet</h2><p>{% if state and not state.error %}AirNow returned no observations for {{ zip }}. Try another ZIP code or check again later.{% else %}Refresh to check nearby monitors for {{ zip }}.{% endif %}</p></section>
+    {% endif %}
+    {% if state and state.checkedAt %}<p class="muted small">Last check: {{ state.checkedAt|date('M j, H:i', 'UTC') }} UTC</p>{% endif %}
+{% endif %}

@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<h1>Settings</h1>
+<p class="muted">Choose the ZIP code you want to keep an eye on.</p>
+{{ form_start(form) }}
+    {{ form_row(form.zipCode) }}
+    {{ form_row(form.apiKey) }}
+    <p class="small {{ hasKey ? 'configured' : 'muted' }}">{{ hasKey ? 'An API key is configured.' : 'No API key configured.' }}</p>
+    <button>Save settings</button>
+{{ form_end(form) }}
+<p class="muted small">Get a free key at docs.airnowapi.org. Preferences and observation history stay on this Mac.</p>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<h1>History <span>{{ zip }}</span></h1>
+<p class="muted small">The latest 200 saved observations, newest first. Rechecking an observation updates it without adding a duplicate.</p>
+{% for observation in observations %}
+<article class="history-row"><div><strong>{{ observation.parameterName }}</strong><span>{{ observation.categoryName }}</span><small>{{ observation.dateObserved }} · {{ observation.hourObserved }} {{ observation.localTimeZone }}</small><small>{{ observation.siteName }}</small></div><b>{{ observation.aqi }}</b></article>
+{% else %}<section class="empty"><h2>No history yet</h2><p>Observations appear here after your first successful refresh.</p></section>{% endfor %}
+{% endblock %}

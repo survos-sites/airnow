@@ -46,15 +46,31 @@ fn start(app: &tauri::AppHandle) -> Result<(Server, String), Box<dyn std::error:
     let port = listener.local_addr()?.port();
     drop(listener);
     let secret = uuid::Uuid::new_v4().to_string();
-    let child = Command::new(binary).args(["run", "--config"]).arg(config)
-        .current_dir(&root)
-        .env("DESKTOP_PORT", port.to_string()).env("APP_PUBLIC_DIR", root.join("public"))
-        .env("APP_ENV", if cfg!(debug_assertions) { "dev" } else { "prod" })
-        .env("APP_DEBUG", if cfg!(debug_assertions) { "1" } else { "0" }).env("APP_DATA_DIR", &data)
-        .env("APP_BUILD_ID", fs::read_to_string(root.join(".build-id")).unwrap_or_else(|_| "dev".into()))
-        .env("DEFAULT_URI", format!("http://127.0.0.1:{port}"))
-        .env("APP_SECRET", &secret).env("DESKTOP_TOKEN", &secret)
-        .stdin(Stdio::null()).stdout(log.try_clone()?).stderr(log).spawn()?;
+    let command = || -> Result<Command, std::io::Error> {
+        let mut cmd = Command::new(&binary);
+        cmd.current_dir(&root)
+            .env("DESKTOP_PORT", port.to_string()).env("APP_PUBLIC_DIR", root.join("public"))
+            .env("APP_ENV", if cfg!(debug_assertions) { "dev" } else { "prod" })
+            .env("APP_DEBUG", if cfg!(debug_assertions) { "1" } else { "0" }).env("APP_DATA_DIR", &data)
+            .env("APP_BUILD_ID", fs::read_to_string(root.join(".build-id")).unwrap_or_else(|_| "dev".into()))
+            .env("DEFAULT_URI", format!("http://127.0.0.1:{port}"))
+            .env("APP_SECRET", &secret).env("DESKTOP_TOKEN", &secret)
+            .stdin(Stdio::null()).stdout(log.try_clone()?).stderr(log.try_clone()?);
+        Ok(cmd)
+    };
+    // Run ordinary Symfony migrations using bundled PHP before accepting web requests.
+    let migration = command()?.args(["php-cli", "bin/console", "doctrine:migrations:migrate", "--no-interaction"]).spawn()?;
+    let migration = Server(Mutex::new(Some(migration)));
+    let deadline = Instant::now() + Duration::from_secs(30);
+    loop {
+        if let Some(status) = migration.0.lock().unwrap().as_mut().unwrap().try_wait()? {
+            if !status.success() { return Err(format!("Database migration failed. See {}", data.join("runtime.log").display()).into()); }
+            break;
+        }
+        if Instant::now() >= deadline { return Err("Database migration timed out; see runtime.log".into()); }
+        thread::sleep(Duration::from_millis(100));
+    }
+    let child = command()?.args(["run", "--config"]).arg(config).spawn()?;
     let server = Server(Mutex::new(Some(child)));
     let deadline = Instant::now() + Duration::from_secs(30);
     while Instant::now() < deadline {
@@ -84,18 +100,18 @@ fn main() {
             app.manage(server);
             let origin = url.split("/?").next().unwrap().to_owned();
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url.parse()?))
-                .title("AirNow").inner_size(400.0, 510.0).resizable(false).visible(true)
+                .title("Air Quality").inner_size(400.0, 510.0).resizable(false).visible(true)
                 .on_navigation(move |url| url.as_str().starts_with(&format!("{origin}/")))
                 .build()?;
-            let open = MenuItem::with_id(app, "open", "Open AirNow", true, None::<&str>)?;
-            let quit = MenuItem::with_id(app, "quit", "Quit AirNow", true, Some("CmdOrCtrl+Q"))?;
+            let open = MenuItem::with_id(app, "open", "Open Air Quality", true, None::<&str>)?;
+            let quit = MenuItem::with_id(app, "quit", "Quit Air Quality", true, Some("CmdOrCtrl+Q"))?;
             // Small monochrome three-bar glyph, suitable for a macOS template icon.
             let mut rgba = vec![0_u8; 18 * 18 * 4];
             for (y, width) in [(4, 14), (8, 10), (12, 14)] {
                 for row in y..y+2 { for x in 2..width { rgba[(row * 18 + x) * 4 + 3] = 255; } }
             }
             TrayIconBuilder::new().icon(tauri::image::Image::new_owned(rgba, 18, 18))
-                .icon_as_template(true).tooltip("AirNow").menu(&Menu::with_items(app, &[&open, &quit])?)
+                .icon_as_template(true).tooltip("Air Quality").menu(&Menu::with_items(app, &[&open, &quit])?)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "open" => show(app), "quit" => app.exit(0), _ => {}
