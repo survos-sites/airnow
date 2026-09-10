@@ -1,0 +1,7 @@
+survos_airnow:
+    api_key: '%env(airnow_key:AIRNOW_API_KEY)%'
+    default_zip_codes: ['%env(AIRNOW_ZIP)%']
+    cache_ttl: 3600
+    timeout: 10.0
+survos_fetch:
+    persistent_cache_path: '%app.data_dir%/fetch-cache.sqlite'

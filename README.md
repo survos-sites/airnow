@@ -104,3 +104,28 @@ Production caches are separated by a fingerprint of staged source/config/depende
 Initial measurement on Apple Silicon: approximately 193 MB uncompressed for the Hello app,
 mostly the general-purpose FrankenPHP binary (169 MB). A custom extension-minimal runtime
 could reduce this later; the first build prioritizes the supported prebuilt runtime.
+
+## AirNow application foundation
+
+The app now requires the published `survos/airnow-bundle:^2.28` from Packagist.
+The native dashboard remains the Hello proof while the application layer is built.
+
+```bash
+# Put AIRNOW_API_KEY=your-key in .env.local; optionally override AIRNOW_ZIP.
+php bin/console doctrine:migrations:migrate --no-interaction
+php bin/console aqi:fetch
+php bin/console aqi:fetch --force
+```
+
+`AqiMonitor` calls the bundle and stores every returned pollutant in Doctrine SQLite.
+Identity includes ZIP, local date/time/timezone, monitor ID and pollutant, so repeated
+refreshes update the same record. It retains raw normalized fields for future UI detail.
+`ObservationRepository` exposes a bounded history and the latest persisted response batch.
+The default SQLite path is `var/airnow.sqlite`, redirected under `APP_DATA_DIR` in desktop mode.
+
+`Settings` provides editable ZIP/key preferences for the forthcoming settings form, with
+`.env.local` defaults during ordinary development. Overrides use a private `settings.json`
+in the data directory. The API key is resolved through an env processor into the bundle's
+normal client; there is no duplicate application HTTP client. The settings form, dashboard,
+history screen and periodic refresh are still to be implemented. Existing history must
+be labeled stale after an empty/failed refresh when that UI is added.

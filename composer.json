@@ -1,4 +1,6 @@
 {
+    "name": "survos/airnow-desktop",
+    "description": "A Symfony desktop application for macOS, using Tauri and FrankenPHP",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -7,11 +9,20 @@
         "php": "^8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "doctrine/orm": "^3.7",
+        "survos/airnow-bundle": "^2.28",
+        "symfony/asset-mapper": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/dotenv": "8.1.*",
         "symfony/flex": "^2",
+        "symfony/form": "8.1.*",
         "symfony/framework-bundle": "8.1.*",
+        "symfony/lock": "8.1.*",
         "symfony/runtime": "8.1.*",
+        "symfony/security-csrf": "8.1.*",
+        "symfony/stimulus-bundle": "^3.4",
         "symfony/twig-bundle": "8.1.*",
         "symfony/yaml": "8.1.*"
     },
@@ -49,7 +60,8 @@
     "scripts": {
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "importmap:install": "symfony-cmd"
         },
         "post-install-cmd": [
             "@auto-scripts"

@@ -45,3 +45,24 @@ User reported that clicking the tray after closing did not restore a visible win
 The reopen action now unhides the accessory application, unminimizes/shows/focuses the
 window, and handles mouse-down (without depending on mouse-up delivery). The rebuilt
 package passes the runtime smoke test; manual close/tray-reopen retest is pending.
+
+### Desktop milestone accepted
+
+The user confirmed the rebuilt tray click reopens the closed window. Tray Quit was also
+verified by the user and corroborated by FrankenPHP's SIGTERM / exit-code-0 log.
+
+## Second demo — Symfony proxy directory (before Messenger monitor)
+
+Read the Symfony proxy's new index.json, show running applications and their proxy URLs,
+and open a selected URL in the default browser. Verify the actual index schema and URL
+before implementation. This is the smallest second consumer of the reusable desktop shell;
+Messenger queues become the third, richer use case. Include this progression in the
+planned Medium article after the implementations work.
+
+### AQI foundation checkpoint
+
+Published airnow-bundle 2.28 installed through Composer. Doctrine SQLite Observation entity,
+repository, migration, Settings abstraction and method-level aqi:fetch implemented.
+Kernel integration test verifies real bundle-to-monitor persistence and idempotent refresh.
+The desktop remains the Hello UI; no claim of a finished AQI dashboard/settings/history UI.
+The user is considering the proxy directory as the first finished example before AirNow.

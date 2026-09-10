@@ -6,7 +6,7 @@ mkdirSync('desktop/app', { recursive: true });
 if (!dev) {
     rmSync('desktop/app', { recursive: true, force: true });
     mkdirSync('desktop/app', { recursive: true });
-    for (const path of ['bin', 'config', 'public', 'src', 'templates', 'composer.json', 'composer.lock', 'symfony.lock']) {
+    for (const path of ['bin', 'config', 'public', 'src', 'templates', 'composer.json', 'composer.lock', 'symfony.lock', 'migrations', 'assets', 'importmap.php']) {
         cpSync(path, `desktop/app/${path}`, { recursive: true });
     }
     const hash = createHash('sha256');
@@ -20,6 +20,8 @@ if (!dev) {
     fingerprint('desktop/app');
     writeFileSync('desktop/app/.build-id', hash.digest('hex').slice(0, 16));
     // Explicit clean defaults. Never copy .env.local, dev cache, credentials or user data.
-    writeFileSync('desktop/app/.env', 'APP_ENV=prod\nAPP_DEBUG=0\nAPP_SECRET=\n');
+    writeFileSync('desktop/app/.env', 'APP_ENV=prod\nAPP_DEBUG=0\nAPP_SECRET=\nAIRNOW_API_KEY=\nAIRNOW_ZIP=20002\nLOCK_DSN=flock\nDEFAULT_URI=http://127.0.0.1\n');
     execFileSync('composer', ['install', '--working-dir=desktop/app', '--no-dev', '--no-scripts', '--prefer-dist', '--no-interaction', '--optimize-autoloader'], { stdio: 'inherit' });
+    execFileSync('php', ['bin/console', 'asset-map:compile'], { cwd: 'desktop/app', stdio: 'inherit', env: { ...process.env, APP_ENV: 'prod', APP_DEBUG: '0' } });
+    rmSync('desktop/app/var', { recursive: true, force: true });
 }
