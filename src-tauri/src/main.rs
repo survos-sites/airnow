@@ -21,7 +21,10 @@ impl Server {
 impl Drop for Server { fn drop(&mut self) { self.stop(); } }
 
 fn show(app: &tauri::AppHandle) {
+    // A macOS accessory app can be hidden independently of its window.
+    let _ = app.show();
     if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -98,7 +101,7 @@ fn main() {
                     "open" => show(app), "quit" => app.exit(0), _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
-                    if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }) { show(tray.app_handle()); }
+                    if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Down, .. }) { show(tray.app_handle()); }
                 }).build(app)?;
             Ok(())
         })

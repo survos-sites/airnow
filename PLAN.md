@@ -38,3 +38,10 @@ Do not publish without the user's instruction.
 - Window close leaves the health route responding; normal menu Quit cleanly stops the runtime.
 - Automated packaged-resource smoke test passes including authentication and SIGTERM exit 0.
 - Tray icon interactions await the user's visual check (native AX tooling omits tray controls).
+
+### Tray reopen correction
+
+User reported that clicking the tray after closing did not restore a visible window.
+The reopen action now unhides the accessory application, unminimizes/shows/focuses the
+window, and handles mouse-down (without depending on mouse-up delivery). The rebuilt
+package passes the runtime smoke test; manual close/tray-reopen retest is pending.
