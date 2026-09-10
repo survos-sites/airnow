@@ -1,0 +1,38 @@
+name: Check desktop
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_sqlite, intl
+          coverage: none
+          tools: composer:v2
+      - run: rustup default 1.98.1
+      - run: composer install --prefer-dist --no-interaction
+      - run: npm ci
+      - run: php bin/phpunit
+      - run: php bin/console lint:container
+      - run: php bin/console lint:twig templates
+      - run: npm run runtime:download
+      - run: npx tauri build --bundles app,dmg
+      - run: node scripts/check-package.mjs
+      - run: bash scripts/verify-dmg.sh src-tauri/target/release/bundle/dmg/*.dmg --local

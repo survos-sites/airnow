@@ -66,3 +66,21 @@ repository, migration, Settings abstraction and method-level aqi:fetch implement
 Kernel integration test verifies real bundle-to-monitor persistence and idempotent refresh.
 The desktop remains the Hello UI; no claim of a finished AQI dashboard/settings/history UI.
 The user is considering the proxy directory as the first finished example before AirNow.
+
+## AQI UI milestone and distribution
+
+Dashboard, settings, history, validated forms, CSRF-protected refresh and Stimulus polling
+implemented. RefreshState distinguishes failure, empty response and latest successful
+observations without mixing response batches. Desktop startup runs Doctrine migrations
+using bundled PHP. Four tests / 41 assertions and packaged resource smoke test pass.
+The rebuilt native Air Quality window renders successfully.
+
+The user authorized public publication and requested `survos-sites/airnow`; the repository
+has been created and the initial milestones pushed. The GitHub release workflow follows
+Tauri's signing support and additionally notarizes/verifies the DMG. Apple account recovery
+and membership verification are in progress; no official signed release exists yet.
+Display name is Air Quality; identifier stays com.survos.airnow for persisted data continuity.
+
+The proxy site monitor can add scheduled HTTP smoke checks against Symfony CLI-served apps.
+The Scheduler consumer would hold monitor code, not the checked applications' code; dev
+reload is owned by those Symfony CLI servers. Keep this enhancement for the next demo.
