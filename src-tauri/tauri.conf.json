@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AirNow",
+  "version": "0.1.0",
+  "identifier": "com.survos.airnow",
+  "build": {
+    "beforeDevCommand": "node scripts/prepare.mjs --dev",
+    "beforeBuildCommand": "node scripts/prepare.mjs",
+    "frontendDist": "../desktop/ui"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "capabilities": []
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app"
+    ],
+    "externalBin": [
+      "binaries/frankenphp"
+    ],
+    "resources": {
+      "../desktop/app/": "app/",
+      "../desktop/Caddyfile": "Caddyfile"
+    },
+    "macOS": {
+      "minimumSystemVersion": "12.0"
+    },
+    "icon": [
+      "icons/icon.icns",
+      "icons/icon.png"
+    ]
+  }
+}

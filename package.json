@@ -1,0 +1,1 @@
+{"name":"airnow-desktop","private":true,"version":"0.1.0","scripts":{"desktop:dev":"tauri dev","desktop:build":"tauri build --bundles app","desktop:prepare":"node scripts/prepare.mjs","runtime:download":"node scripts/download-runtime.mjs"},"devDependencies":{"@tauri-apps/cli":"^2.0.0"}}
